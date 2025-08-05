@@ -23,6 +23,16 @@ cd huggingplace-python-sdk
 pip install -e .
 ```
 
+## API Compatibility
+
+Both SDKs support the following key features:
+
+- **Flexible Field Mapping**: Automatically maps `response` to `ai_response` and `user_metadata` to `user_meta_data` for API compatibility
+- **Response Time Handling**: Accepts response time in any format and sends it as-is to the backend
+- **Minimal Validation**: Accepts data even when fields are empty, with only basic type validation
+- **Session Management**: Built-in session support for tracking multiple interactions
+- **Error Handling**: Comprehensive error handling with detailed error messages
+
 ## Documentation
 
 Each SDK has its own documentation and examples in their respective directories.

@@ -9,39 +9,39 @@ export class Session {
    * @param {HuggingPlace} huggingplace - HuggingPlace instance
    * @param {string} sessionId - Session ID
    * @param {Object} options - Session options
-   * @param {Object} [options.metadata] - Default metadata for the session
-   * @param {Object} [options.userMetadata] - Default user metadata for the session
+   * @param {Object} [options.metaData] - Default metadata for the session
+   * @param {Object} [options.user_meta_data] - Default user metadata for the session
    */
   constructor(huggingplace, sessionId, options = {}) {
     this.huggingplace = huggingplace;
     this.sessionId = sessionId;
-    this.defaultMetadata = options.metadata || {};
-    this.defaultUserMetadata = options.userMetadata || {};
+    this.defaultMetadata = options.metaData || {};
+    this.defaultUserMetaData = options.user_meta_data || {};
   }
 
   /**
    * Log an interaction with session defaults
    * @param {Object} options - Log options
-   * @param {string} options.userPrompt - User prompt
-   * @param {string} options.response - AI response
-   * @param {string} [options.sessionId] - Session ID (uses session default if not provided)
-   * @param {Object} [options.metadata] - Additional metadata
-   * @param {Object} [options.userMetadata] - Additional user metadata
+   * @param {string} options.user_prompt - User prompt
+   * @param {string} options.ai_response - AI response
+   * @param {string} [options.session_id] - Session ID (uses session default if not provided)
+   * @param {Object} [options.metaData] - Additional metadata
+   * @param {Object} [options.user_meta_data] - Additional user metadata
    * @returns {Promise<void>}
    */
   async log(options) {
     // Merge session defaults with provided options
     const mergedOptions = {
       ...options,
-      // Only set sessionId if not provided by user
-      sessionId: options.sessionId || this.sessionId,
-      metadata: {
+      // Only set session_id if not provided by user
+      session_id: options.session_id || this.sessionId,
+      metaData: {
         ...this.defaultMetadata,
-        ...options.metadata,
+        ...options.metaData,
       },
-      userMetadata: {
-        ...this.defaultUserMetadata,
-        ...options.userMetadata,
+      user_meta_data: {
+        ...this.defaultUserMetaData,
+        ...options.user_meta_data,
       },
     };
 
@@ -68,14 +68,14 @@ export class Session {
   /**
    * Update session defaults
    * @param {Object} [metadata] - New default metadata
-   * @param {Object} [userMetadata] - New default user metadata
+   * @param {Object} [userMetaData] - New default user metadata
    */
-  updateDefaults(metadata, userMetadata) {
+  updateDefaults(metadata, userMetaData) {
     if (metadata) {
       this.defaultMetadata = { ...this.defaultMetadata, ...metadata };
     }
-    if (userMetadata) {
-      this.defaultUserMetadata = { ...this.defaultUserMetadata, ...userMetadata };
+    if (userMetaData) {
+      this.defaultUserMetaData = { ...this.defaultUserMetaData, ...userMetaData };
     }
   }
 
@@ -87,7 +87,7 @@ export class Session {
     return {
       sessionId: this.sessionId,
       defaultMetadata: this.defaultMetadata,
-      defaultUserMetadata: this.defaultUserMetadata,
+      defaultUserMetaData: this.defaultUserMetaData,
     };
   }
 } 

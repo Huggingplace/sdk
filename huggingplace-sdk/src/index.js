@@ -16,8 +16,7 @@ export {
 // Export validation functions
 export {
   validateConfig,
-  validateLogOptions,
-  validateStepData
+  validateLogOptions
 } from './validation.js';
 
  

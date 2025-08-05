@@ -1,5 +1,7 @@
 import { ValidationError } from './errors.js';
 
+
+
 /**
  * Validate SDK configuration
  * @param {Object} config - Configuration object
@@ -37,52 +39,14 @@ export function validateLogOptions(options) {
     throw new ValidationError('Log options are required');
   }
 
-  if (!options.userPrompt) {
-    throw new ValidationError('User prompt is required');
-  }
-
-  if (!options.response) {
-    throw new ValidationError('Response is required');
-  }
-
-  if (options.tokenCount && (typeof options.tokenCount !== 'number' || options.tokenCount < 0)) {
+  // Only validate data types, not presence
+  if (options.token_count && (typeof options.token_count !== 'number' || options.token_count < 0)) {
     throw new ValidationError('Token count must be a non-negative number');
   }
 
-  if (options.responseTime && (typeof options.responseTime !== 'number' || options.responseTime < 0)) {
-    throw new ValidationError('Response time must be a non-negative number');
-  }
+  // No validation for response_time - accept any format
 }
 
-/**
- * Validate step data
- * @param {Object} stepData - Step data object
- * @throws {ValidationError} - If step data is invalid
- */
-export function validateStepData(stepData) {
-  if (!stepData) {
-    throw new ValidationError('Step data is required');
-  }
 
-  if (!stepData.type) {
-    throw new ValidationError('Step type is required');
-  }
-
-  if (!stepData.userQuestion) {
-    throw new ValidationError('User question is required for step');
-  }
-
-  if (!stepData.promptResponse) {
-    throw new ValidationError('Prompt response is required for step');
-  }
-
-  if (stepData.token && (typeof stepData.token !== 'number' || stepData.token < 0)) {
-    throw new ValidationError('Step token count must be a non-negative number');
-  }
-
-  if (stepData.responseTime && (typeof stepData.responseTime !== 'number' || stepData.responseTime < 0)) {
-    throw new ValidationError('Step response time must be a non-negative number');
-  }
-}
 
  

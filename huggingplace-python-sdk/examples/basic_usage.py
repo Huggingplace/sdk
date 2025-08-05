@@ -19,17 +19,17 @@ async def basic_logging():
 
         await huggingplace.log({
             "user_prompt": "What is the weather today?",
-            "response": "The weather is sunny with a temperature of 25°C.",
+            "ai_response": "The weather is sunny with a temperature of 25°C.",
             "session_id": "session-123",
             "llm_model": "gpt-4o",
             "token_count": 150,
-            "response_time": 2.5,
-            "metadata": {
+            "response_time": "0 min 2.50 sec",
+            "metaData": {
                 "likes": 1,
                 "dislikes": 0,
                 "custom_field": "value"
             },
-            "user_metadata": {
+            "user_meta_data": {
                 "email": "user@example.com",
                 "username": "john_doe",
                 "org_name": "Example Corp"
@@ -51,11 +51,11 @@ async def session_logging():
 
         # Create a session for related interactions
         session = huggingplace.start_session("user-123", {
-            "metadata": {
+            "metaData": {
                 "user_id": "user-123",
                 "conversation_type": "support"
             },
-            "user_metadata": {
+            "user_meta_data": {
                 "email": "user@example.com",
                 "org_name": "Example Corp"
             }
@@ -65,20 +65,20 @@ async def session_logging():
         # session_id will automatically be set to 'user-123' from the session
         await session.log({
             "user_prompt": "I need help with my account",
-            "response": "I can help you with your account. What specific issue are you facing?",
+            "ai_response": "I can help you with your account. What specific issue are you facing?",
             "llm_model": "gpt-4o"
         })
 
         await session.log({
             "user_prompt": "I can't log in",
-            "response": "Let me help you troubleshoot your login issue. Have you tried resetting your password?",
+            "ai_response": "Let me help you troubleshoot your login issue. Have you tried resetting your password?",
             "llm_model": "gpt-4o"
         })
 
         # You can also override the session_id if needed
         await session.log({
             "user_prompt": "What about my other account?",
-            "response": "I can help with your other account as well.",
+            "ai_response": "I can help with your other account as well.",
             "session_id": "different-session-id",  # This will override the session default
             "llm_model": "gpt-4o"
         })
@@ -98,23 +98,27 @@ async def step_logging():
 
         # Log individual processing steps
         await huggingplace.log_step({
-            "type": "data_processing",
+            "step_name": "data_processing",
+            "status": "completed",
+            "time_ms": 1800,
             "user_question": "Process the sales data",
             "prompt_response": "Data processed successfully. Found 1,245 sales records.",
             "llm_model": "gpt-4o",
             "token": 120,
-            "response_time": 1.8,
+            "response_time": "0 min 1.80 sec",
             "input_tokens": 40,
             "output_tokens": 80
         })
 
         await huggingplace.log_step({
-            "type": "sql_generation",
+            "step_name": "sql_generation",
+            "status": "completed",
+            "time_ms": 2100,
             "user_question": "Generate SQL query for monthly sales",
             "prompt_response": "SELECT DATE_TRUNC('month', sale_date) as month, COUNT(*) as sales_count FROM sales GROUP BY month ORDER BY month;",
             "llm_model": "gpt-4o",
             "token": 200,
-            "response_time": 2.1,
+            "response_time": "0 min 2.10 sec",
             "input_tokens": 60,
             "output_tokens": 140
         })
@@ -145,7 +149,7 @@ async def automatic_timing():
             {
                 "session_id": "session-456",
                 "llm_model": "gpt-4o",
-                "metadata": {
+                "metaData": {
                     "source": "weather_api",
                     "location": "New York"
                 }
