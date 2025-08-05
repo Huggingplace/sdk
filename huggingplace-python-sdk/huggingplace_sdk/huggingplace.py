@@ -55,18 +55,39 @@ class HuggingPlace:
         
         Args:
             options: Log options
-                - user_prompt: User prompt (required)
-                - response: AI response (required)
-                - session_id: Session ID (optional)
-                - llm_model: LLM model used (optional)
-                - token_count: Token count (optional)
-                - response_time: Response time in seconds (optional)
-                - metadata: Additional metadata (optional)
-                - user_metadata: User metadata (optional)
-                - step_data: Array of processing steps (optional)
+                - user_prompt: User prompt
+                - ai_response: AI response (preferred over 'response')
+                - response: AI response (alternative to 'ai_response')
+                - user_uuid: User UUID
+                - file_name: File name
+                - session_id: Session ID
+                - llm_model: LLM model used
+                - llm_model2: Secondary LLM model
+                - token_count: Token count
+                - metaData: Additional metadata
+                - user_roles: User roles array
+                - org_uuid: Organization UUID
+                - mapping_table: Database mapping table
+                - step_data: Array of processing steps
+                - response_time: Response time in milliseconds
+                - message_id: Message ID
+                - user_meta_data: User metadata (preferred over 'user_metadata')
+                - user_metadata: User metadata (alternative to 'user_meta_data')
+                - org_id: Organization ID
+                - mode: Environment mode
         """
         try:
             validate_log_options(options)
+
+            # Map response to ai_response if not provided (keep both)
+            if "response" in options and "ai_response" not in options:
+                options["ai_response"] = options["response"]
+
+            # Map user_metadata to user_meta_data if not provided
+            if "user_metadata" in options and "user_meta_data" not in options:
+                options["user_meta_data"] = options.pop("user_metadata")
+
+            # Send response_time as-is without any formatting
 
             # Add org_id and mode from config
             payload = {
@@ -111,19 +132,21 @@ class HuggingPlace:
         
         Args:
             options: Step options
-                - type: Step type (required)
-                - user_question: User question for this step (required)
-                - prompt_response: Response for this step (required)
-                - llm_model: LLM model used (optional)
-                - token: Token count (optional)
-                - response_time: Response time (optional)
-                - input_tokens: Input token count (optional)
-                - output_tokens: Output token count (optional)
+                - step_name: Step name
+                - status: Step status
+                - time_ms: Time in milliseconds
+                - user_question: User question for this step
+                - prompt_response: Response for this step
+                - llm_model: LLM model used
+                - token: Token count
+                - response_time: Response time
+                - input_tokens: Input token count
+                - output_tokens: Output token count
         """
         # For individual steps, we create a minimal log entry
         await self.log({
-            "user_prompt": options["user_question"],
-            "response": options["prompt_response"],
+            "user_prompt": options.get("user_question", ""),
+            "ai_response": options.get("prompt_response", ""),
             "llm_model": options.get("llm_model"),
             "token_count": options.get("token"),
             "response_time": options.get("response_time"),
@@ -176,8 +199,8 @@ class HuggingPlace:
 
             await self.log({
                 "user_prompt": user_prompt,
-                "response": response,
-                "response_time": response_time,
+                "ai_response": response,
+                "response_time": f"0 min {response_time:.2f} sec",  # Send as string format
                 **options,
             })
 
@@ -186,10 +209,10 @@ class HuggingPlace:
             # Log the error as well
             await self.log({
                 "user_prompt": user_prompt,
-                "response": f"Error: {str(error)}",
-                "response_time": time.time() - start_time,
-                "metadata": {
-                    **options.get("metadata", {}),
+                "ai_response": f"Error: {str(error)}",
+                "response_time": f"0 min {(time.time() - start_time):.2f} sec",  # Send as string format
+                "metaData": {
+                    **options.get("metaData", {}),
                     "error": True,
                     "error_message": str(error),
                 },
@@ -236,7 +259,7 @@ class HuggingPlace:
             # Try to make a minimal request to test the connection
             test_payload = {
                 "user_prompt": "connection_test",
-                "response": "test_response",
+                "ai_response": "test_response",
                 "org_id": self.config["org_id"],
                 "mode": self.config["mode"]
             }

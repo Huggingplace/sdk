@@ -29,8 +29,8 @@ class Session:
         """
         self.huggingplace = huggingplace
         self.session_id = session_id
-        self.default_metadata = options.get("metadata", {}) if options else {}
-        self.default_user_metadata = options.get("user_metadata", {}) if options else {}
+        self.default_metadata = options.get("metaData", {}) if options else {}
+        self.default_user_meta_data = options.get("user_meta_data", {}) if options else {}
 
     async def log(self, options: Dict[str, Any]) -> None:
         """
@@ -49,13 +49,13 @@ class Session:
             **options,
             # Only set session_id if not provided by user
             "session_id": options.get("session_id") or self.session_id,
-            "metadata": {
+            "metaData": {
                 **self.default_metadata,
-                **options.get("metadata", {}),
+                **options.get("metaData", {}),
             },
-            "user_metadata": {
-                **self.default_user_metadata,
-                **options.get("user_metadata", {}),
+            "user_meta_data": {
+                **self.default_user_meta_data,
+                **options.get("user_meta_data", {}),
             },
         }
 
@@ -81,19 +81,19 @@ class Session:
     def update_defaults(
         self, 
         metadata: Optional[Dict[str, Any]] = None, 
-        user_metadata: Optional[Dict[str, Any]] = None
+        user_meta_data: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Update session defaults.
         
         Args:
             metadata: New default metadata
-            user_metadata: New default user metadata
+            user_meta_data: New default user metadata
         """
         if metadata:
             self.default_metadata = {**self.default_metadata, **metadata}
-        if user_metadata:
-            self.default_user_metadata = {**self.default_user_metadata, **user_metadata}
+        if user_meta_data:
+            self.default_user_meta_data = {**self.default_user_meta_data, **user_meta_data}
 
     def get_session_info(self) -> Dict[str, Any]:
         """
@@ -105,5 +105,5 @@ class Session:
         return {
             "session_id": self.session_id,
             "default_metadata": self.default_metadata,
-            "default_user_metadata": self.default_user_metadata,
+            "default_user_meta_data": self.default_user_meta_data,
         } 

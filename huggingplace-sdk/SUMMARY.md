@@ -58,9 +58,9 @@ const huggingplace = new HuggingPlace({
 });
 
 await huggingplace.log({
-  userPrompt: "What's the weather like?",
-  response: "The weather is sunny today.",
-  metadata: { sessionId: 'session-123' }
+  user_prompt: "What's the weather like?",
+  ai_response: "The weather is sunny today.",
+  metaData: { sessionId: 'session-123' }
 });
 ```
 
@@ -70,9 +70,9 @@ await huggingplace.log({
 const session = huggingplace.startSession('conversation-123');
 
 await session.log({
-  userPrompt: "What's the weather like?",
-  response: "The weather is sunny today.",
-  metadata: { step: 1 }
+  user_prompt: "What's the weather like?",
+  ai_response: "The weather is sunny today.",
+  metaData: { step: 1 }
 });
 
 // Automatic timing
@@ -92,10 +92,10 @@ The SDK is fully compatible with the existing `/store_generated_response` endpoi
 ### SDK Input
 ```javascript
 await huggingplace.log({
-  userPrompt: "What's the weather?",
-  response: "It's sunny today.",
-  metadata: { sessionId: "123" },
-  userMetadata: { email: "user@example.com" }
+  user_prompt: "What's the weather?",
+  ai_response: "It's sunny today.",
+  metaData: { sessionId: "123" },
+  user_meta_data: { email: "user@example.com" }
 });
 ```
 

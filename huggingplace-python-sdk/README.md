@@ -42,8 +42,8 @@ huggingplace = HuggingPlace(
 # Log a simple interaction
 await huggingplace.log({
     "user_prompt": "What's the weather like?",
-    "response": "The weather is sunny today.",
-    "metadata": {
+    "ai_response": "The weather is sunny today.",
+    "metaData": {
         "session_id": "session-123",
         "user_id": "user-456"
     }
@@ -76,20 +76,22 @@ Log a complete interaction with HuggingPlace.
 await huggingplace.log({
     # Required fields
     "user_prompt": "What's the weather like?",
+    "ai_response": "The weather is sunny today.",
+    # Alternative: you can also use 'response' instead of 'ai_response'
     "response": "The weather is sunny today.",
     
     # Optional fields
-    "user_id": "user-123",
+    "user_uuid": "user-123",
     "session_id": "session-456",
     "file_name": "weather_data.csv",
     "llm_model": "gpt-4o",
     "llm_model2": "gpt-4o",
     "token_count": 150,
-    "response_time": 2.5,
+    "response_time": "0 min 2.50 sec",  # Accepts any format, sent as-is
     "message_id": "msg-789",
     
     # Metadata
-    "metadata": {
+    "metaData": {
         "session_id": "session-456",
         "likes": 1,
         "dislikes": 0,
@@ -98,7 +100,7 @@ await huggingplace.log({
     },
     
     # User metadata
-    "user_metadata": {
+    "user_meta_data": {
         "email": "user@example.com",
         "username": "john_doe",
         "org_name": "Example Corp"
@@ -107,12 +109,13 @@ await huggingplace.log({
     # Step-by-step data
     "step_data": [
         {
-            "id": 1,
-            "type": "data_processing",
+            "step_name": "data_processing",
+            "status": "completed",
+            "time_ms": 1800,
             "user_question": "Process weather data",
             "prompt_response": "Data processed successfully",
             "token": 120,
-            "response_time": 1.8,
+            "response_time": "0 min 1.80 sec",
             "input_tokens": 40,
             "output_tokens": 80,
             "llm_model": "gpt-4o"
@@ -120,13 +123,17 @@ await huggingplace.log({
     ],
     
     # User context
-    "user_roles": "admin",
+    "user_roles": ["admin"],
     "org_uuid": "org-202",
     "mapping_table": "mappings_org_202"
 })
 ```
 
-**Note**: The SDK expects data in the exact format shown above. No automatic transformation is performed.
+**Note**: The SDK automatically maps field names for API compatibility:
+- `response` → `ai_response` (both are sent to backend)
+- `user_metadata` → `user_meta_data`
+- `metadata` → `metaData`
+- Response time accepts any format and is sent as-is
 
 #### `log_step(step_data)`
 
@@ -134,11 +141,13 @@ Log individual processing steps.
 
 ```python
 await huggingplace.log_step({
-    "type": "sql_generation",
+    "step_name": "sql_generation",
+    "status": "completed",
+    "time_ms": 1500,
     "user_question": "Generate SQL for sales data",
     "prompt_response": "SELECT * FROM sales WHERE...",
     "token": 150,
-    "response_time": 1.5,
+    "response_time": "0 min 1.50 sec",
     "input_tokens": 50,
     "output_tokens": 100,
     "llm_model": "gpt-4o"
@@ -151,7 +160,7 @@ Start a new session for tracking multiple interactions.
 
 ```python
 session = huggingplace.start_session("my-session-id")
-await session.log({"user_prompt": "Hello", "response": "Hi there!"})
+await session.log({"user_prompt": "Hello", "ai_response": "Hi there!"})
 ```
 
 ### Advanced Usage
@@ -170,28 +179,29 @@ huggingplace = HuggingPlace(
 # Log a complete interaction
 await huggingplace.log({
     "user_prompt": "How many sales were there last month?",
-    "response": "There were 1,245 sales last month.",
-    "user_id": "user-123",
+    "ai_response": "There were 1,245 sales last month.",
+    "user_uuid": "user-123",
     "session_id": "session-456",
     "file_name": "sales_data.csv",
     "llm_model": "gpt-4o",
     "token_count": 350,
-    "response_time": 2.3,
-    "metadata": {
+    "response_time": "0 min 2.30 sec",
+    "metaData": {
         "session_id": "session-456",
         "likes": 0,
         "dislikes": 0,
         "recommendation_id": "rec-789"
     },
-    "user_metadata": {
+    "user_meta_data": {
         "email": "user@example.com",
         "username": "john_doe",
         "org_name": "Example Corp"
     },
     "step_data": [
         {
-            "id": 1,
-            "type": "sql_generation",
+            "step_name": "sql_generation",
+            "status": "completed",
+            "time_ms": 1500,
             "user_question": "Generate SQL to find last month's sales",
             "prompt_response": "SELECT COUNT(*) FROM sales WHERE...",
             "token": 150,

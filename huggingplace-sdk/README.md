@@ -73,21 +73,23 @@ Log a complete interaction with HuggingPlace.
 ```javascript
 await huggingplace.log({
   // Required fields
-  userPrompt: "What's the weather like?",
+  user_prompt: "What's the weather like?",
+  ai_response: "The weather is sunny today.",
+  // Alternative: you can also use 'response' instead of 'ai_response'
   response: "The weather is sunny today.",
   
   // Optional fields
-  userId: "user-123",
-  sessionId: "session-456",
-  fileName: "weather_data.csv",
-  llmModel: "gpt-4o",
-  llmModel2: "gpt-4o",
-  tokenCount: 150,
-  responseTime: 2.5,
-  messageId: "msg-789",
+  user_uuid: "user-123",
+  session_id: "session-456",
+  file_name: "weather_data.csv",
+  llm_model: "gpt-4o",
+  llm_model2: "gpt-4o",
+  token_count: 150,
+  response_time: "0 min 2.50 sec", // Accepts any format, sent as-is
+  message_id: "msg-789",
   
   // Metadata
-  metadata: {
+  metaData: {
     sessionId: "session-456",
     likes: 1,
     dislikes: 0,
@@ -96,21 +98,22 @@ await huggingplace.log({
   },
   
   // User metadata
-  userMetadata: {
+  user_meta_data: {
     email: "user@example.com",
     username: "john_doe",
     orgName: "Example Corp"
   },
   
   // Step-by-step data
-  stepData: [
+  step_data: [
     {
-      id: 1,
-      type: "data_processing",
+      step_name: "data_processing",
+      status: "completed",
+      time_ms: 1800,
       userQuestion: "Process weather data",
       promptResponse: "Data processed successfully",
       token: 120,
-      responseTime: 1.8,
+      responseTime: "0 min 1.80 sec",
       inputTokens: 40,
       outputTokens: 80,
       llmModel: "gpt-4o"
@@ -118,13 +121,17 @@ await huggingplace.log({
   ],
   
   // User context
-  userRoles: "admin",
-  orgUuid: "org-202",
-  mappingTable: "mappings_org_202"
+  user_roles: ["admin"],
+  org_uuid: "org-202",
+  mapping_table: "mappings_org_202"
 });
 ```
 
-**Note**: The SDK expects data in the exact format shown above. No automatic transformation is performed.
+**Note**: The SDK automatically maps field names for API compatibility:
+- `response` → `ai_response` (both are sent to backend)
+- `userMetadata` → `user_meta_data`
+- `metadata` → `metaData`
+- Response time accepts any format and is sent as-is
 
 #### `logStep(stepData)`
 
@@ -132,11 +139,13 @@ Log individual processing steps.
 
 ```javascript
 await huggingplace.logStep({
-  type: 'sql_generation',
+  step_name: 'sql_generation',
+  status: 'completed',
+  time_ms: 1500,
   userQuestion: 'Generate SQL for sales data',
   promptResponse: 'SELECT * FROM sales WHERE...',
   token: 150,
-  responseTime: 1.5,
+  responseTime: "0 min 1.50 sec",
   inputTokens: 50,
   outputTokens: 100,
   llmModel: 'gpt-4o'
@@ -149,7 +158,7 @@ Start a new session for tracking multiple interactions.
 
 ```javascript
 const session = huggingplace.startSession('my-session-id');
-await session.log({ userPrompt: 'Hello', response: 'Hi there!' });
+await session.log({ user_prompt: 'Hello', ai_response: 'Hi there!' });
 ```
 
 ### Advanced Usage
@@ -166,33 +175,34 @@ const huggingplace = new HuggingPlace({
 
 // Log a complete interaction
 await huggingplace.log({
-  userPrompt: "How many sales were there last month?",
-  response: "There were 1,245 sales last month.",
-  userId: "user-123",
-  sessionId: "session-456",
-  fileName: "sales_data.csv",
-  llmModel: "gpt-4o",
-  tokenCount: 350,
-  responseTime: 2.3,
-  metadata: {
+  user_prompt: "How many sales were there last month?",
+  ai_response: "There were 1,245 sales last month.",
+  user_uuid: "user-123",
+  session_id: "session-456",
+  file_name: "sales_data.csv",
+  llm_model: "gpt-4o",
+  token_count: 350,
+  response_time: "0 min 2.30 sec",
+  metaData: {
     sessionId: "session-456",
     likes: 0,
     dislikes: 0,
     recommendationId: "rec-789"
   },
-  userMetadata: {
+  user_meta_data: {
     email: "user@example.com",
     username: "john_doe",
     orgName: "Example Corp"
   },
-  stepData: [
+  step_data: [
     {
-      id: 1,
-      type: "sql_generation",
+      step_name: "sql_generation",
+      status: "completed",
+      time_ms: 1500,
       userQuestion: "Generate SQL to find last month's sales",
       promptResponse: "SELECT COUNT(*) FROM sales WHERE...",
       token: 150,
-      responseTime: 1.5,
+      responseTime: "0 min 1.50 sec",
       inputTokens: 50,
       outputTokens: 100,
       llmModel: "gpt-4o"

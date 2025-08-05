@@ -1,5 +1,7 @@
 import { ValidationError } from './errors.js';
 
+
+
 /**
  * Validate SDK configuration
  * @param {Object} config - Configuration object
@@ -37,21 +39,12 @@ export function validateLogOptions(options) {
     throw new ValidationError('Log options are required');
   }
 
-  if (!options.userPrompt) {
-    throw new ValidationError('User prompt is required');
-  }
-
-  if (!options.response) {
-    throw new ValidationError('Response is required');
-  }
-
-  if (options.tokenCount && (typeof options.tokenCount !== 'number' || options.tokenCount < 0)) {
+  // Only validate data types, not presence
+  if (options.token_count && (typeof options.token_count !== 'number' || options.token_count < 0)) {
     throw new ValidationError('Token count must be a non-negative number');
   }
 
-  if (options.responseTime && (typeof options.responseTime !== 'number' || options.responseTime < 0)) {
-    throw new ValidationError('Response time must be a non-negative number');
-  }
+  // No validation for response_time - accept any format
 }
 
 /**
@@ -80,9 +73,7 @@ export function validateStepData(stepData) {
     throw new ValidationError('Step token count must be a non-negative number');
   }
 
-  if (stepData.responseTime && (typeof stepData.responseTime !== 'number' || stepData.responseTime < 0)) {
-    throw new ValidationError('Step response time must be a non-negative number');
-  }
+  // No validation for step responseTime - accept any format
 }
 
  

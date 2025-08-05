@@ -11,18 +11,18 @@ const huggingplace = new HuggingPlace({
 async function basicLogging() {
   try {
     await huggingplace.log({
-      userPrompt: 'What is the weather today?',
-      response: 'The weather is sunny with a temperature of 25°C.',
-      sessionId: 'session-123',
-      llmModel: 'gpt-4o',
-      tokenCount: 150,
-      responseTime: 2.5,
-      metadata: {
+      user_prompt: 'What is the weather today?',
+      ai_response: 'The weather is sunny with a temperature of 25°C.',
+      session_id: 'session-123',
+      llm_model: 'gpt-4o',
+      token_count: 150,
+      response_time: '0 min 2.50 sec',
+      metaData: {
         likes: 1,
         dislikes: 0,
         customField: 'value'
       },
-      userMetadata: {
+      user_meta_data: {
         email: 'user@example.com',
         username: 'john_doe',
         org_name: 'Example Corp'
@@ -40,36 +40,36 @@ async function sessionLogging() {
   try {
     // Create a session for related interactions
     const session = huggingplace.startSession('user-123', {
-      metadata: {
+      metaData: {
         userId: 'user-123',
         conversationType: 'support'
       },
-      userMetadata: {
+      user_meta_data: {
         email: 'user@example.com',
         org_name: 'Example Corp'
       }
     });
 
     // Log multiple interactions in the same session
-    // sessionId will automatically be set to 'user-123' from the session
+    // session_id will automatically be set to 'user-123' from the session
     await session.log({
-      userPrompt: 'I need help with my account',
-      response: 'I can help you with your account. What specific issue are you facing?',
-      llmModel: 'gpt-4o'
+      user_prompt: 'I need help with my account',
+      ai_response: 'I can help you with your account. What specific issue are you facing?',
+      llm_model: 'gpt-4o'
     });
 
     await session.log({
-      userPrompt: 'I can\'t log in',
-      response: 'Let me help you troubleshoot your login issue. Have you tried resetting your password?',
-      llmModel: 'gpt-4o'
+      user_prompt: 'I can\'t log in',
+      ai_response: 'Let me help you troubleshoot your login issue. Have you tried resetting your password?',
+      llm_model: 'gpt-4o'
     });
 
-    // You can also override the sessionId if needed
+    // You can also override the session_id if needed
     await session.log({
-      userPrompt: 'What about my other account?',
-      response: 'I can help with your other account as well.',
-      sessionId: 'different-session-id', // This will override the session default
-      llmModel: 'gpt-4o'
+      user_prompt: 'What about my other account?',
+      ai_response: 'I can help with your other account as well.',
+      session_id: 'different-session-id', // This will override the session default
+      llm_model: 'gpt-4o'
     });
 
     console.log('✅ Session logging completed');
@@ -83,23 +83,27 @@ async function stepLogging() {
   try {
     // Log individual processing steps
     await huggingplace.logStep({
-      type: 'data_processing',
+      step_name: 'data_processing',
+      status: 'completed',
+      time_ms: 1800,
       userQuestion: 'Process the sales data',
       promptResponse: 'Data processed successfully. Found 1,245 sales records.',
       llmModel: 'gpt-4o',
       token: 120,
-      responseTime: 1.8,
+      responseTime: '0 min 1.80 sec',
       inputTokens: 40,
       outputTokens: 80
     });
 
     await huggingplace.logStep({
-      type: 'sql_generation',
+      step_name: 'sql_generation',
+      status: 'completed',
+      time_ms: 2100,
       userQuestion: 'Generate SQL query for monthly sales',
       promptResponse: 'SELECT DATE_TRUNC(\'month\', sale_date) as month, COUNT(*) as sales_count FROM sales GROUP BY month ORDER BY month;',
       llmModel: 'gpt-4o',
       token: 200,
-      responseTime: 2.1,
+      responseTime: '0 min 2.10 sec',
       inputTokens: 60,
       outputTokens: 140
     });
@@ -125,9 +129,9 @@ async function automaticTiming() {
       'What is the weather today?',
       mockLLMCall,
       {
-        sessionId: 'session-456',
-        llmModel: 'gpt-4o',
-        metadata: {
+        session_id: 'session-456',
+        llm_model: 'gpt-4o',
+        metaData: {
           source: 'weather_api',
           location: 'New York'
         }
