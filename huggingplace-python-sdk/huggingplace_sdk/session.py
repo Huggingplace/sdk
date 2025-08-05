@@ -2,8 +2,10 @@
 Session class for managing related interactions
 """
 
-from typing import Dict, Any, Optional
-from .huggingplace import HuggingPlace
+from typing import Dict, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .huggingplace import HuggingPlace
 
 
 class Session:
@@ -13,7 +15,7 @@ class Session:
     
     def __init__(
         self, 
-        huggingplace: HuggingPlace, 
+        huggingplace: "HuggingPlace", 
         session_id: str, 
         options: Optional[Dict[str, Any]] = None
     ):
