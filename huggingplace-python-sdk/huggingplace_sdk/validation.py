@@ -59,31 +59,4 @@ def validate_log_options(options: Dict[str, Any]) -> None:
     pass
 
 
-def validate_step_data(step_data: Dict[str, Any]) -> None:
-    """
-    Validate step data.
-    
-    Args:
-        step_data: Step data object
-        
-    Raises:
-        ValidationError: If step data is invalid
-    """
-    if not step_data:
-        raise ValidationError("Step data is required")
-
-    if not step_data.get("type"):
-        raise ValidationError("Step type is required")
-
-    if not step_data.get("user_question"):
-        raise ValidationError("User question is required for step")
-
-    if not step_data.get("prompt_response"):
-        raise ValidationError("Prompt response is required for step")
-
-    token = step_data.get("token")
-    if token is not None and (not isinstance(token, (int, float)) or token < 0):
-        raise ValidationError("Step token count must be a non-negative number")
-
-    # No validation for step response_time - accept any format
-    pass 
+ 

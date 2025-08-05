@@ -18,7 +18,6 @@ from .errors import (
 from .validation import (
     validate_config,
     validate_log_options,
-    validate_step_data,
 )
 
 __version__ = "1.0.1"
@@ -37,5 +36,4 @@ __all__ = [
     "create_error_from_response",
     "validate_config",
     "validate_log_options",
-    "validate_step_data",
 ] 

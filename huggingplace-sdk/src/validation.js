@@ -47,33 +47,6 @@ export function validateLogOptions(options) {
   // No validation for response_time - accept any format
 }
 
-/**
- * Validate step data
- * @param {Object} stepData - Step data object
- * @throws {ValidationError} - If step data is invalid
- */
-export function validateStepData(stepData) {
-  if (!stepData) {
-    throw new ValidationError('Step data is required');
-  }
 
-  if (!stepData.type) {
-    throw new ValidationError('Step type is required');
-  }
-
-  if (!stepData.userQuestion) {
-    throw new ValidationError('User question is required for step');
-  }
-
-  if (!stepData.promptResponse) {
-    throw new ValidationError('Prompt response is required for step');
-  }
-
-  if (stepData.token && (typeof stepData.token !== 'number' || stepData.token < 0)) {
-    throw new ValidationError('Step token count must be a non-negative number');
-  }
-
-  // No validation for step responseTime - accept any format
-}
 
  
