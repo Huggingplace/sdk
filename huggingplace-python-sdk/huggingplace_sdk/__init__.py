@@ -20,6 +20,9 @@ from .validation import (
     validate_log_options,
 )
 
+# Import tracing utilities
+from .trace.utils import generate_id, get_current_timestamp, calculate_duration
+
 __version__ = "1.0.1"
 __author__ = "HuggingPlace Team"
 __email__ = "team@huggingplace.com"
@@ -36,4 +39,8 @@ __all__ = [
     "create_error_from_response",
     "validate_config",
     "validate_log_options",
+    # Tracing utilities
+    "generate_id",
+    "get_current_timestamp",
+    "calculate_duration",
 ] 

@@ -11,6 +11,14 @@ from .validation import validate_config, validate_log_options
 from .errors import AuthenticationError, NetworkError, create_error_from_response
 from .session import Session
 
+# Import tracing functions
+from .trace.trace_step import trace_step as base_trace_step
+from .trace.trace_llm import trace_llm_with_evaluation as base_trace_llm
+from .trace.trace_multi_step import trace_multi_step_flow as base_trace_multi_step_flow
+from .trace.sender import create_sender
+from .trace.config import DEFAULT_BASE_URL
+from .trace.utils import generate_id
+
 
 class HuggingPlace:
     """
@@ -29,6 +37,9 @@ class HuggingPlace:
                 - mode: Environment mode (prod/dev) (optional)
                 - timeout: Request timeout in milliseconds (optional)
                 - silent: Silent mode (no console logs) (optional)
+                - trace_batch_size: Trace batch size (default: 10)
+                - trace_batch_timeout: Trace batch timeout in ms (default: 5000)
+                - trace_max_retries: Max retries for trace requests (default: 3)
         """
         validate_config(config)
 
@@ -36,10 +47,13 @@ class HuggingPlace:
             "mode": "prod",
             "timeout": 10000,
             "silent": False,
+            "trace_batch_size": 10,
+            "trace_batch_timeout": 5000,
+            "trace_max_retries": 3,
             **config,
         }
 
-        self.base_url = config.get("base_url") or "https://anvsj57nul.execute-api.ap-south-1.amazonaws.com"
+        self.base_url = config.get("base_url") or DEFAULT_BASE_URL
 
         # Create session with default headers
         self.session = requests.Session()
@@ -48,6 +62,90 @@ class HuggingPlace:
             "Authorization": f"Bearer {self.config['api_key']}",
         })
         self.session.timeout = self.config["timeout"] / 1000  # Convert to seconds
+
+        # Create a configured sender instance for this HuggingPlace instance
+        self.sender = create_sender({
+            "base_url": self.base_url,
+            "batch_size": self.config["trace_batch_size"],
+            "batch_timeout": self.config["trace_batch_timeout"],
+            "max_retries": self.config["trace_max_retries"],
+            "timeout": self.config["timeout"],
+            "silent": self.config["silent"],
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.config['api_key']}",
+            }
+        })
+
+    async def send_trace(self, trace: Dict[str, Any]) -> None:
+        """
+        Custom send_trace function that enriches trace data with HuggingPlace metadata
+        
+        Args:
+            trace: Trace data to send
+        """
+        # Add org and mode from config
+        enriched_trace = {
+            **trace,
+            "metadata": {
+                **(trace.get("metadata", {})),
+                "orgId": self.config["org_id"],
+                "mode": self.config["mode"],
+            }
+        }
+
+        # Use the configured sender
+        return await self.sender["send_trace"](enriched_trace)
+
+    async def trace_step(self, **kwargs) -> Any:
+        """
+        Trace a single step with detailed metadata
+        
+        Args:
+            **kwargs: Tracing parameters (same as base_trace_step)
+            
+        Returns:
+            Result of the function execution
+        """
+        return await base_trace_step(
+            trace_id=kwargs.get("trace_id") or generate_id(),
+            parent_span_id=kwargs.get("parent_span_id") or generate_id(),
+            send_trace_func=self.send_trace,
+            **kwargs
+        )
+
+    async def trace_llm(self, **kwargs) -> Any:
+        """
+        Trace an LLM call with evaluation data
+        
+        Args:
+            **kwargs: Tracing parameters (same as base_trace_llm_with_evaluation)
+            
+        Returns:
+            Result of the LLM function execution
+        """
+        return await base_trace_llm(
+            trace_id=kwargs.get("trace_id") or generate_id(),
+            parent_span_id=kwargs.get("parent_span_id") or generate_id(),
+            send_trace_func=self.send_trace,
+            **kwargs
+        )
+
+    async def trace_multi_step_flow(self, **kwargs) -> list:
+        """
+        Trace a multi-step workflow
+        
+        Args:
+            **kwargs: Tracing parameters (same as base_trace_multi_step_flow)
+            
+        Returns:
+            List of results from each step
+        """
+        return await base_trace_multi_step_flow(
+            trace_id=kwargs.get("trace_id") or generate_id(),
+            send_trace_func=self.send_trace,
+            **kwargs
+        )
 
     async def log(self, options: Dict[str, Any]) -> None:
         """
@@ -119,39 +217,56 @@ class HuggingPlace:
                 
         except requests.exceptions.RequestException as e:
             if not self.config["silent"]:
-                print("❌ Failed to log interaction to HuggingPlace:", str(e))
-            raise NetworkError(f"Network error: {str(e)}")
+                print(f"❌ Network error: {e}")
+            raise NetworkError()
         except Exception as e:
             if not self.config["silent"]:
-                print("❌ Failed to log interaction to HuggingPlace:", str(e))
-            raise
+                print(f"❌ Error logging interaction: {e}")
+            raise e
 
     async def log_step(self, options: Dict[str, Any]) -> None:
         """
-        Log individual processing steps.
+        Log a single processing step.
         
         Args:
-            options: Step options
-                - step_name: Step name
-                - status: Step status
-                - time_ms: Time in milliseconds
-                - user_question: User question for this step
-                - prompt_response: Response for this step
-                - llm_model: LLM model used
-                - token: Token count
-                - response_time: Response time
-                - input_tokens: Input token count
-                - output_tokens: Output token count
+            options: Step log options
+                - step_name: Name of the step (required)
+                - step_data: Step data (required)
+                - session_id: Session ID (optional)
+                - metadata: Additional metadata (optional)
         """
-        # For individual steps, we create a minimal log entry
-        await self.log({
-            "user_prompt": options.get("user_question", ""),
-            "ai_response": options.get("prompt_response", ""),
-            "llm_model": options.get("llm_model"),
-            "token_count": options.get("token"),
-            "response_time": options.get("response_time"),
-            "step_data": [options],
-        })
+        try:
+            # Add org_id and mode from config
+            payload = {
+                **options,
+                "org_id": self.config["org_id"],
+                "mode": self.config["mode"],
+            }
+
+            if not self.config["silent"]:
+                print("📤 Sending step payload to backend:", json.dumps(payload, indent=2))
+
+            response = self.session.post(
+                f"{self.base_url}/v2/chatgpt/store_step",
+                json=payload
+            )
+
+            if response.status_code != 200:
+                error_data = response.json() if response.content else {}
+                message = error_data.get("message") or error_data.get("error") or "Unknown error"
+                raise create_error_from_response(response.status_code, message)
+
+            if not self.config["silent"]:
+                print("✅ Step logged successfully")
+                
+        except requests.exceptions.RequestException as e:
+            if not self.config["silent"]:
+                print(f"❌ Network error: {e}")
+            raise NetworkError()
+        except Exception as e:
+            if not self.config["silent"]:
+                print(f"❌ Error logging step: {e}")
+            raise e
 
     def start_session(
         self, 
@@ -159,19 +274,26 @@ class HuggingPlace:
         options: Optional[Dict[str, Any]] = None
     ) -> Session:
         """
-        Start a new session for tracking multiple interactions.
+        Start a new session for tracking conversations.
         
         Args:
-            session_id: Session ID (auto-generated if not provided)
+            session_id: Custom session ID (auto-generated if not provided)
             options: Session options
-                - metadata: Default metadata for the session
-                - user_metadata: Default user metadata for the session
-                
+            
         Returns:
-            Session instance
+            Session object
         """
-        session_id = session_id or str(uuid.uuid4())
-        return Session(self, session_id, options or {})
+        if session_id is None:
+            session_id = str(uuid.uuid4())
+        
+        if options is None:
+            options = {}
+        
+        return Session(
+            session_id=session_id,
+            huggingplace=self,
+            options=options
+        )
 
     async def log_with_timing(
         self, 
@@ -180,7 +302,7 @@ class HuggingPlace:
         options: Optional[Dict[str, Any]] = None
     ) -> str:
         """
-        Log with automatic timing.
+        Log an interaction with automatic timing.
         
         Args:
             user_prompt: User prompt
@@ -188,88 +310,94 @@ class HuggingPlace:
             options: Additional options
             
         Returns:
-            The generated response
+            Generated response
         """
+        if options is None:
+            options = {}
+        
         start_time = time.time()
-        options = options or {}
-
+        
         try:
-            response = await response_generator()
+            response = response_generator()
             response_time = time.time() - start_time
-
+            
             await self.log({
                 "user_prompt": user_prompt,
-                "ai_response": response,
-                "response_time": f"0 min {response_time:.2f} sec",  # Send as string format
+                "response": response,
+                "response_time": f"0 min {response_time:.2f} sec",
                 **options,
             })
-
             return response
+            
         except Exception as error:
-            # Log the error as well
+            if not self.config["silent"]:
+                print(f"❌ Failed to log with timing: {error}")
+            
             await self.log({
                 "user_prompt": user_prompt,
-                "ai_response": f"Error: {str(error)}",
-                "response_time": f"0 min {(time.time() - start_time):.2f} sec",  # Send as string format
-                "metaData": {
-                    **options.get("metaData", {}),
+                "response": f"Error: {str(error)}",
+                "response_time": f"0 min {(time.time() - start_time):.2f} sec",
+                "metadata": {
+                    **(options.get("metadata", {})),
                     "error": True,
                     "error_message": str(error),
                 },
                 **options,
             })
-
-            raise
+            raise error
 
     def get_config(self) -> Dict[str, Any]:
         """
-        Get current configuration (without sensitive data).
+        Get current configuration.
         
         Returns:
-            Safe configuration object
+            Current configuration
         """
-        safe_config = self.config.copy()
-        safe_config.pop("api_key", None)
-        return safe_config
+        return self.config.copy()
 
     def update_config(self, new_config: Dict[str, Any]) -> None:
         """
         Update configuration.
         
         Args:
-            new_config: New configuration options
+            new_config: New configuration values
         """
-        updated_config = {**self.config, **new_config}
-        validate_config(updated_config)
-
-        self.config = updated_config
-
-        # Update session with new config
-        self.session.headers["Authorization"] = f"Bearer {self.config['api_key']}"
-        self.session.timeout = self.config["timeout"] / 1000
+        self.config.update(new_config)
+        
+        # Update session headers if API key changed
+        if "api_key" in new_config:
+            self.session.headers.update({
+                "Authorization": f"Bearer {self.config['api_key']}",
+            })
+        
+        # Update session timeout if timeout changed
+        if "timeout" in new_config:
+            self.session.timeout = self.config["timeout"] / 1000
+        
+        # Re-create sender if tracing config changed
+        if any(key in new_config for key in ["trace_batch_size", "trace_batch_timeout", "trace_max_retries", "silent"]):
+            self.sender = create_sender({
+                "base_url": self.base_url,
+                "batch_size": self.config["trace_batch_size"],
+                "batch_timeout": self.config["trace_batch_timeout"],
+                "max_retries": self.config["trace_max_retries"],
+                "timeout": self.config["timeout"],
+                "silent": self.config["silent"],
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.config['api_key']}",
+                }
+            })
 
     async def test_connection(self) -> bool:
         """
-        Test connection to HuggingPlace API.
+        Test connection to HuggingPlace backend.
         
         Returns:
-            True if connection successful
+            True if connection successful, False otherwise
         """
         try:
-            # Try to make a minimal request to test the connection
-            test_payload = {
-                "user_prompt": "connection_test",
-                "ai_response": "test_response",
-                "org_id": self.config["org_id"],
-                "mode": self.config["mode"]
-            }
-            
-            response = self.session.post(
-                f"{self.base_url}/v2/chatgpt/store_generated_response",
-                json=test_payload
-            )
+            response = self.session.get(f"{self.base_url}/health")
             return response.status_code == 200
-        except Exception as e:
-            if not self.config["silent"]:
-                print("Connection test failed:", str(e))
+        except Exception:
             return False 
