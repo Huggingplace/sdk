@@ -1,7 +1,7 @@
 // config.js - Default configuration for tracing
 
 // Default base URL - declared once
-export const DEFAULT_BASE_URL = 'http://localhost:8000';
+export const DEFAULT_BASE_URL = 'https://anvsj57nul.execute-api.ap-south-1.amazonaws.com';
 
 /**
  * Default configuration for tracing
@@ -9,7 +9,7 @@ export const DEFAULT_BASE_URL = 'http://localhost:8000';
 export const DEFAULT_TRACE_CONFIG = {
   // Default base URL (will be overridden by HuggingPlace baseUrl)
   baseUrl: DEFAULT_BASE_URL,
-  
+
   // Batching configuration
   batchSize: 10,
   batchTimeout: 5000, // 5 seconds

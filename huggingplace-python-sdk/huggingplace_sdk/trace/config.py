@@ -3,7 +3,7 @@ Configuration for tracing functionality
 """
 
 # Default base URL - declared once
-DEFAULT_BASE_URL = "http://localhost:8000"
+DEFAULT_BASE_URL = "https://anvsj57nul.execute-api.ap-south-1.amazonaws.com"
 
 """
 Default configuration for tracing
