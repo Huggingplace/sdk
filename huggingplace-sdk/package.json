@@ -17,7 +17,8 @@
     "tracing",
     "prompt-engineering",
     "ai",
-    "machine-learning"
+    "machine-learning",
+    "opentelemetry"
   ],
   "author": "HuggingPlace Team",
   "license": "MIT",
@@ -34,6 +35,9 @@
     "prettier": "^2.8.7"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-node": "^0.48.0",
+    "@opentelemetry/sdk-trace-base": "^1.21.0",
     "axios": "^1.4.0",
     "uuid": "^9.0.0"
   },
@@ -45,4 +49,4 @@
     "README.md",
     "LICENSE"
   ]
-} 
+}
