@@ -228,9 +228,9 @@ export class HuggingPlace {
         mode: this.config.mode,
       };
 
-      if (!this.config.silent) {
-        console.log("📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
-      }
+      // if (!this.config.silent) {
+      //   console.log("📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
+      // }
 
       const response = await this.axiosInstance.post(
         '/v2/chatgpt/store_generated_response',
@@ -369,10 +369,10 @@ export class HuggingPlace {
     }
 
     // Update sender configuration if tracing config changed
-    if (newConfig.traceEndpoint || newConfig.traceBatchEndpoint || 
-        newConfig.traceBatchSize || newConfig.traceBatchTimeout || 
-        newConfig.traceMaxRetries || newConfig.silent) {
-      
+    if (newConfig.traceEndpoint || newConfig.traceBatchEndpoint ||
+      newConfig.traceBatchSize || newConfig.traceBatchTimeout ||
+      newConfig.traceMaxRetries || newConfig.silent) {
+
       this.sender = createSender({
         traceEndpoint: newConfig.traceEndpoint || this.traceEndpoint,
         batchEndpoint: newConfig.traceBatchEndpoint || this.traceBatchEndpoint,
