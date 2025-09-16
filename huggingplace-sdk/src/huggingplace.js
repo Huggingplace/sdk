@@ -81,15 +81,15 @@ export class HuggingPlace {
         mode: this.config.mode,
       };
 
-      if (!this.config.silent) {
-        console.log("📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
-      }
+      // if (!this.config.silent) {
+      //   console.log("📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
+      // }
 
       const response = await this.axiosInstance.post(
         '/v2/chatgpt/store_generated_response',
         payload
       );
-      
+
       if (!this.config.silent) {
         console.log("📥 Response status:", response.status);
         console.log("📥 Response data:", response.data);
@@ -227,7 +227,7 @@ export class HuggingPlace {
         orgId: this.config.orgId,
         mode: this.config.mode
       };
-      
+
       const response = await this.axiosInstance.post(
         '/v2/chatgpt/store_generated_response',
         testPayload

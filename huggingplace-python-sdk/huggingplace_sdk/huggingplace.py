@@ -75,8 +75,8 @@ class HuggingPlace:
                 "mode": self.config["mode"],
             }
 
-            if not self.config["silent"]:
-                print("📤 Sending payload to backend:", json.dumps(payload, indent=2))
+            # if not self.config["silent"]:
+            #     print("📤 Sending payload to backend:", json.dumps(payload, indent=2))
 
             response = self.session.post(
                 f"{self.base_url}/v2/chatgpt/store_generated_response",
