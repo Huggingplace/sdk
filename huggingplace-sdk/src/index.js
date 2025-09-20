@@ -19,4 +19,7 @@ export {
   validateLogOptions
 } from './validation.js';
 
+// Export utility functions for tracing
+export { generateId, getCurrentTimestamp, calculateDuration } from './trace/utils.js';
+
  

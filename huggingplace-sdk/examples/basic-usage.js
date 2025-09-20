@@ -223,9 +223,9 @@ async function runExamples() {
 }
 
 // Run examples if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// if (import.meta.url === `file://${process.argv[1]}`) {
   runExamples().catch(console.error);
-}
+// }
 
 export {
   basicLogging,
